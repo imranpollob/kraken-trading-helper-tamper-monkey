@@ -99,7 +99,7 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
         const CryptoProfitCalculator = () => {
             const [coinPrice, setCoinPrice] = React.useState(0);
             const [totalInvested, setTotalInvested] = React.useState(0);
-            const [boughtPrice, setBoughtPrice] = React.useState(0);
+            const [boughtPrice, setBoughtPrice] = React.useState("");
             const [results, setResults] = React.useState(null);
 
             // Fetch input values from the page
@@ -132,6 +132,7 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
 
             // Update calculations when values change
             React.useEffect(() => {
+                const parsedBoughtPrice = boughtPrice !== "" ? parseFloat(boughtPrice) : null;
                 if (coinPrice > 0 && totalInvested > 0) {
                     const calculationResults = tradeSummaryWithFractional(coinPrice, totalInvested, boughtPrice);
                     setResults(calculationResults);
@@ -148,7 +149,7 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
                     type: "number",
                     id: "bought-price",
                     value: boughtPrice,
-                    onChange: (e) => setBoughtPrice(parseFloat(e.target.value) || 0),
+                    onChange: (e) => setBoughtPrice(e.target.value),
                     style: {
                         backgroundColor: "#333",
                         color: "#fff",
@@ -183,3 +184,5 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
         }
     }, 5000);
 })();
+
+
