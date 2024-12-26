@@ -65,23 +65,24 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
 
     // Prepare results for React
     const results = [];
-    results.push({ label: "Break Even", value: `$${breakEvenPrice.toFixed(3)}` });
 
     if (currentCoinPrice) {
         results.push({
-            label: `${percentageProfitLoss.toFixed(2)}%`,
-            value: `$${currentCoinPrice.toFixed(3)} ($${profitAtCurrent.toFixed(3)})`,
+            percentage: percentageProfitLoss,
+            price: currentCoinPrice,
+            net: profitAtCurrent,
         });
     }
 
     for (const gain in targetPrices) {
         results.push({
-            label: `${gain}%`,
-            value: `$${targetPrices[gain].toFixed(3)} ($${profits[gain].toFixed(3)})`,
+            percentage: gain,
+            price: targetPrices[gain],
+            net: profits[gain],
         });
     }
 
-    return results;
+    return [breakEvenPrice, results];
 }
 
 (function () {
@@ -99,10 +100,10 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
             return;
         }
 
-        const ResultRow = ({ label, value }) => {
+        const ResultRow2 = ({ label, value }) => {
             return React.createElement(
                 "div",
-                { className: "flex justify-between items-center h-4 pt-2" },
+                { className: "flex justify-between items-center h-4" },
                 React.createElement(
                     "div",
                     { className: "text-ds text-ds-body3 ms-ds-0 me-ds-2 mt-ds-0 mb-ds-0" },
@@ -110,9 +111,27 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
                 ),
                 React.createElement(
                     "div",
-                    { className: "text-ds text-ds-body3 ms-ds-0 me-ds-0 mt-ds-0 mb-ds-0 flex" },
+                    { className: "text-ds text-ds-body3 ms-ds-0 me-ds-0 mt-ds-0 mb-ds-0" },
                     value
                 )
+            );
+        };
+
+        const ResultRow3 = ({ percentage, price, net }) => {
+            return React.createElement(
+                "div",
+                { className: "flex justify-between items-center h-4" },
+                React.createElement(
+                    "div",
+                    { className: "text-ds text-ds-body3 ms-ds-0 me-ds-2 mt-ds-0 mb-ds-0" },
+                    percentage
+                ),
+                React.createElement(
+                    "div",
+                    { className: "text-ds text-ds-body3 ms-ds-0 me-ds-2 mt-ds-0 mb-ds-0" },
+                    price
+                ),
+                React.createElement("div", { className: "text-ds text-ds-body3 ms-ds-0 me-ds-0 mt-ds-0 mb-ds-0" }, net)
             );
         };
 
@@ -121,6 +140,7 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
             const [coinPrice, setCoinPrice] = React.useState(0);
             const [totalInvested, setTotalInvested] = React.useState(0);
             const [boughtPrice, setBoughtPrice] = React.useState("");
+            const [breakEvenPrice, setBreakEvenPrice] = React.useState(0);
             const [results, setResults] = React.useState(null);
 
             // Fetch input values from the page
@@ -155,17 +175,31 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
             React.useEffect(() => {
                 const parsedBoughtPrice = boughtPrice !== "" ? parseFloat(boughtPrice) : null;
                 if (coinPrice > 0 && totalInvested > 0) {
-                    const calculationResults = tradeSummaryWithFractional(coinPrice, totalInvested, boughtPrice);
-                    setResults(calculationResults);
+                    const [calculatedBreakEvenPrice, calculatedResults] = tradeSummaryWithFractional(
+                        coinPrice,
+                        totalInvested,
+                        boughtPrice
+                    );
+                    setBreakEvenPrice(calculatedBreakEvenPrice);
+                    setResults(calculatedResults);
                 }
             }, [coinPrice, totalInvested, boughtPrice]);
 
+            const formatCurrency = (value, digits = 5, locale = "en-US", currency = "USD") => {
+                return new Intl.NumberFormat(locale, {
+                    style: "decimal",
+                    currency: currency,
+                    minimumFractionDigits: digits,
+                    maximumFractionDigits: digits,
+                }).format(value);
+            };
+
             return React.createElement(
                 "div",
-                null,
-                React.createElement(ResultRow, { label: "Coin Price", value: coinPrice }),
-                React.createElement(ResultRow, { label: "Total Paid", value: totalInvested }),
-                React.createElement(ResultRow, {
+                { className: "flex flex-col gap-y-2 pt-2 border-t border-dimmed" },
+                React.createElement(ResultRow2, { label: "Coin Price", value: coinPrice }),
+                React.createElement(ResultRow2, { label: "Total Paid", value: totalInvested }),
+                React.createElement(ResultRow2, {
                     label: React.createElement("label", { htmlFor: "bought-price" }, "Bought Price:"),
                     value: React.createElement("input", {
                         type: "number",
@@ -179,15 +213,17 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
                         },
                     }),
                 }),
+                React.createElement(ResultRow2, { label: "Break Even Price:", value: formatCurrency(breakEvenPrice) }),
                 results &&
                     React.createElement(
                         "div",
-                        null,
+                        { className: "flex flex-col gap-y-2" },
                         results.map((result, index) =>
-                            React.createElement(ResultRow, {
+                            React.createElement(ResultRow3, {
                                 key: index,
-                                label: result.label,
-                                value: result.value,
+                                percentage: `${parseFloat(result.percentage).toFixed(2)}%`,
+                                price: formatCurrency(result.price),
+                                net: formatCurrency(result.net, 2),
                             })
                         )
                     )
