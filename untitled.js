@@ -65,16 +65,20 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
 
     // Prepare results for React
     const results = [];
-    //results.push(`Price: ${coinPrice.toFixed(3)}`);
-    //results.push(`Paid: ${investmentAmount.toFixed(3)}`);
-    results.push(`Break Even: ${breakEvenPrice.toFixed(3)}`);
+    results.push({ label: "Break Even", value: `$${breakEvenPrice.toFixed(3)}` });
 
     if (currentCoinPrice) {
-        results.push(`${percentageProfitLoss.toFixed(2)}%: $${currentCoinPrice.toFixed(3)} ($${profitAtCurrent.toFixed(3)})`);
+        results.push({
+            label: `${percentageProfitLoss.toFixed(2)}%`,
+            value: `$${currentCoinPrice.toFixed(3)} ($${profitAtCurrent.toFixed(3)})`,
+        });
     }
 
     for (const gain in targetPrices) {
-        results.push(`${gain}%: $${targetPrices[gain].toFixed(3)} ($${profits[gain].toFixed(3)})`);
+        results.push({
+            label: `${gain}%`,
+            value: `$${targetPrices[gain].toFixed(3)} ($${profits[gain].toFixed(3)})`,
+        });
     }
 
     return results;
@@ -94,6 +98,23 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
             console.error("React or ReactDOM not loaded properly.");
             return;
         }
+
+        const ResultRow = ({ label, value }) => {
+            return React.createElement(
+                "div",
+                { className: "flex justify-between items-center h-4 pt-2" },
+                React.createElement(
+                    "div",
+                    { className: "text-ds text-ds-body3 ms-ds-0 me-ds-2 mt-ds-0 mb-ds-0" },
+                    label
+                ),
+                React.createElement(
+                    "div",
+                    { className: "text-ds text-ds-body3 ms-ds-0 me-ds-0 mt-ds-0 mb-ds-0 flex" },
+                    value
+                )
+            );
+        };
 
         // React Component
         const CryptoProfitCalculator = () => {
@@ -142,25 +163,33 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
             return React.createElement(
                 "div",
                 null,
-                React.createElement("p", null, "Limit Price: ", React.createElement("strong", null, coinPrice)),
-                React.createElement("p", null, "Total Invested: ", React.createElement("strong", null, totalInvested)),
-                React.createElement("label", { htmlFor: "bought-price" }, "Bought Price:"),
-                React.createElement("input", {
-                    type: "number",
-                    id: "bought-price",
-                    value: boughtPrice,
-                    onChange: (e) => setBoughtPrice(e.target.value),
-                    style: {
-                        backgroundColor: "#333",
-                        color: "#fff",
-                        border: "1px solid rgba(255, 255, 255, 0.2)", // Optional light border for better contrast
-                    },
+                React.createElement(ResultRow, { label: "Coin Price", value: coinPrice }),
+                React.createElement(ResultRow, { label: "Total Paid", value: totalInvested }),
+                React.createElement(ResultRow, {
+                    label: React.createElement("label", { htmlFor: "bought-price" }, "Bought Price:"),
+                    value: React.createElement("input", {
+                        type: "number",
+                        id: "bought-price",
+                        value: boughtPrice,
+                        onChange: (e) => setBoughtPrice(e.target.value),
+                        style: {
+                            backgroundColor: "#333",
+                            color: "#fff",
+                            border: "1px solid rgba(255, 255, 255, 0.2)", // Optional styling
+                        },
+                    }),
                 }),
                 results &&
                     React.createElement(
                         "div",
                         null,
-                        results.map((result, index) => React.createElement("p", { key: index }, result))
+                        results.map((result, index) =>
+                            React.createElement(ResultRow, {
+                                key: index,
+                                label: result.label,
+                                value: result.value,
+                            })
+                        )
                     )
             );
         };
@@ -184,5 +213,3 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
         }
     }, 5000);
 })();
-
-
