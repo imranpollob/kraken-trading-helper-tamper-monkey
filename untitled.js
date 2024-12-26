@@ -88,9 +88,9 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
 (function () {
     "use strict";
 
-    console.log("Kraken Pro Trade Helper script activated.");
-
     const initReactApp = () => {
+        console.log("Script initialized on URL:", window.location.href);
+
         // Ensure React and ReactDOM are available globally
         const React = window.React;
         const ReactDOM = window.ReactDOM;
@@ -145,8 +145,8 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
 
             // Fetch input values from the page
             const fetchInputValues = () => {
-                const existingCoinPrice = parseFloat(document.querySelector("#price-2")?.value || 0);
-                const existingTotalInvested = parseFloat(document.querySelector("#volumeInQuote-4")?.value || 0);
+                const existingCoinPrice = parseFloat(document.querySelector('[id^="price-"]')?.value || 0);
+                const existingTotalInvested = parseFloat(document.querySelector('[id^="volumeInQuote-"]')?.value || 0);
                 setCoinPrice(existingCoinPrice);
                 setTotalInvested(existingTotalInvested);
             };
@@ -158,8 +158,8 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
 
             // Observe DOM changes
             React.useEffect(() => {
-                const coinPriceElement = document.querySelector("#price-2");
-                const totalInvestedElement = document.querySelector("#volumeInQuote-4");
+                const coinPriceElement = document.querySelector('[id^="price-"]');
+                const totalInvestedElement = document.querySelector('[id^="volumeInQuote-"]');
 
                 if (coinPriceElement && totalInvestedElement) {
                     const observer = new MutationObserver(fetchInputValues);
@@ -197,10 +197,11 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
             return React.createElement(
                 "div",
                 { className: "flex flex-col gap-y-2 pt-2 border-t border-dimmed" },
-                React.createElement(ResultRow2, { label: "Coin Price", value: coinPrice }),
-                React.createElement(ResultRow2, { label: "Total Paid", value: totalInvested }),
+                // React.createElement(ResultRow2, { label: "Coin Price", value: coinPrice }),
+                // React.createElement(ResultRow2, { label: "Total", value: totalInvested }),
+                React.createElement(ResultRow2, { label: "Break Even Price:", value: formatCurrency(breakEvenPrice) }),
                 React.createElement(ResultRow2, {
-                    label: React.createElement("label", { htmlFor: "bought-price" }, "Bought Price:"),
+                    label: React.createElement("label", { htmlFor: "bought-price" }, "Expected Price:"),
                     value: React.createElement("input", {
                         type: "number",
                         id: "bought-price",
@@ -213,7 +214,6 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
                         },
                     }),
                 }),
-                React.createElement(ResultRow2, { label: "Break Even Price:", value: formatCurrency(breakEvenPrice) }),
                 results &&
                     React.createElement(
                         "div",
@@ -241,11 +241,57 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
         }
     };
 
-    // Delay script execution until DOM is ready
-    const interval = setInterval(() => {
-        if (document.querySelector(".flex.flex-col.gap-y-2.pt-2")) {
-            clearInterval(interval);
-            initReactApp();
-        }
-    }, 5000);
+    const initializeScript = () => {
+        console.log("Script initialized or reinitialized on URL:", window.location.href);
+
+        const interval = setInterval(() => {
+            if (document.querySelector(".flex.flex-col.gap-y-2.pt-2")) {
+                clearInterval(interval);
+                initReactApp();
+            } else {
+                console.log("Target element not found.");
+            }
+        }, 3000);
+    };
+
+    // Initial script execution
+    initializeScript();
+
+    // Detect URL changes
+    const observeUrlChanges = () => {
+        let currentUrl = window.location.href;
+
+        // Observe for changes in history state (pushState/replaceState)
+        const originalPushState = history.pushState;
+        const originalReplaceState = history.replaceState;
+
+        history.pushState = function (...args) {
+            originalPushState.apply(this, args);
+            window.dispatchEvent(new Event("urlchange"));
+        };
+
+        history.replaceState = function (...args) {
+            originalReplaceState.apply(this, args);
+            window.dispatchEvent(new Event("urlchange"));
+        };
+
+        // Listen for back/forward navigation (popstate)
+        window.addEventListener("popstate", () => {
+            if (currentUrl !== window.location.href) {
+                currentUrl = window.location.href;
+                initializeScript();
+            }
+        });
+
+        // Listen for custom 'urlchange' event
+        window.addEventListener("urlchange", () => {
+            if (currentUrl !== window.location.href) {
+                currentUrl = window.location.href;
+                initializeScript();
+            }
+        });
+    };
+
+    // Start observing URL changes
+    observeUrlChanges();
 })();
