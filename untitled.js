@@ -12,12 +12,15 @@
 // @require      https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js
 // ==/UserScript==
 
-function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPrice = null, feePercent = 0.25) {
+function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPrice = null) {
     // Convert parameters to floats
     coinPrice = parseFloat(coinPrice);
     investmentAmount = parseFloat(investmentAmount);
     currentCoinPrice = currentCoinPrice ? parseFloat(currentCoinPrice) : null;
-    feePercent = parseFloat(feePercent);
+    const anchorElement = document.querySelector('a[href*="fee-level"]');
+    const spanElements = anchorElement.querySelectorAll(".text-ds-primary.text-ds-labelMono3");
+    const makerFee = spanElements[0].firstElementChild.textContent;
+    const feePercent = parseFloat(makerFee);
 
     console.log(coinPrice, investmentAmount, currentCoinPrice, feePercent);
 
