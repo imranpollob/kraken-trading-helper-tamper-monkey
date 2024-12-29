@@ -1,10 +1,9 @@
 // ==UserScript==
 // @name         Kraken Pro Trade Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Calculate profitable selling prices for trades on Kraken Pro.
 // @author       Imran Pollob
-// @github       https://github.com/imranpollob/kraken-trading-helper-tamper-monkey
 // @license      MIT
 // @match        https://pro.kraken.com/app/trade/*
 // @grant        none
@@ -22,7 +21,7 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
     const makerFee = spanElements[0].firstElementChild.textContent;
     const feePercent = parseFloat(makerFee);
 
-    console.log(coinPrice, investmentAmount, currentCoinPrice, feePercent);
+    // console.log(coinPrice, investmentAmount, currentCoinPrice, feePercent);
 
     // Input validation
     if (coinPrice <= 0 || investmentAmount <= 0 || feePercent < 0) {
@@ -94,8 +93,6 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
     "use strict";
 
     const initReactApp = () => {
-        console.log("Script initialized on URL:", window.location.href);
-
         // Ensure React and ReactDOM are available globally
         const React = window.React;
         const ReactDOM = window.ReactDOM;
@@ -239,6 +236,7 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
         const targetContainer = document.querySelector(".flex.flex-col.gap-y-2.pt-2");
         if (targetContainer) {
             const appContainer = document.createElement("div");
+            appContainer.id = "trading-helper";
             targetContainer.appendChild(appContainer);
             ReactDOM.render(React.createElement(CryptoProfitCalculator), appContainer);
         } else {
@@ -247,16 +245,20 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
     };
 
     const initializeScript = () => {
-        console.log("Script initialized or reinitialized on URL:", window.location.href);
+        const observer = new MutationObserver((mutations, obs) => {
+            const targetElement = document.querySelector('a[href*="fee-level"]');
+            if (targetElement) {
+                if (!document.getElementById("trading-helper")) {
+                    console.log("Trading helper is starting");
+                    initReactApp();
+                }
 
-        const interval = setInterval(() => {
-            if (document.querySelector(".flex.flex-col.gap-y-2.pt-2")) {
-                clearInterval(interval);
-                initReactApp();
-            } else {
-                console.log("Target element not found.");
+                obs.disconnect();
             }
-        }, 3000);
+        });
+
+        // Start observing the entire document body for changes
+        observer.observe(document.body, { childList: true, subtree: true });
     };
 
     // Initial script execution
