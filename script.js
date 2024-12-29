@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         Kraken Pro Trade Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  Calculate profitable selling prices for trades on Kraken Pro.
 // @author       Imran Pollob
 // @license      MIT
-// @match        https://pro.kraken.com/app/trade/*
+// @match        https://pro.kraken.com/*
 // @grant        none
 // @require      https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js
