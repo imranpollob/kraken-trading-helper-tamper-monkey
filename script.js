@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraken Pro Trade Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.2
+// @version      1.3
 // @description  Calculate profitable selling prices for trades on Kraken Pro.
 // @author       Imran Pollob
 // @license      MIT
@@ -198,7 +198,7 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
 
             return React.createElement(
                 "div",
-                { className: "flex flex-col gap-y-2 pt-2 border-t border-dimmed" },
+                { className: "flex flex-col gap-y-2 pt-2" },
                 // React.createElement(ResultRow2, { label: "Coin Price", value: coinPrice }),
                 // React.createElement(ResultRow2, { label: "Total", value: totalInvested }),
                 React.createElement(ResultRow2, { label: "Break Even Price:", value: formatCurrency(breakEvenPrice) }),
@@ -233,10 +233,30 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
         };
 
         // Target a container in the DOM
-        const targetContainer = document.querySelector(".flex.flex-col.gap-y-2.pt-2");
+        const targetContainer = document.querySelector("form.flex.overflow-auto.flex-col");
         if (targetContainer) {
             const appContainer = document.createElement("div");
             appContainer.id = "trading-helper";
+            appContainer.classList.add(
+                "ms-ds-0",
+                "me-ds-0",
+                "mt-ds-0",
+                "mb-ds-0",
+                "rounded-ds-5",
+                "relative",
+                "inline-block",
+                "outline-offset-2",
+                "border-ds-card",
+                "bg-ds-card",
+                "outline-none",
+                "p-3",
+                "w-full",
+                "box-border",
+                "ds-card",
+                "bg-transparent",
+                "border",
+                "!border-[#686B8229]"
+            );
             targetContainer.appendChild(appContainer);
             ReactDOM.render(React.createElement(CryptoProfitCalculator), appContainer);
         } else {
@@ -249,11 +269,13 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
             const targetElement = document.querySelector('a[href*="fee-level"]');
             if (targetElement) {
                 if (!document.getElementById("trading-helper")) {
-                    console.log("Trading helper is starting");
+                    console.log("Fee level element found. Initializing...");
                     initReactApp();
                 }
 
                 obs.disconnect();
+            } else {
+                console.log("Fee level element not found. Observing...");
             }
         });
 
