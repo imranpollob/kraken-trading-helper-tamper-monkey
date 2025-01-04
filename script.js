@@ -41,8 +41,8 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
     const targetPrices = {};
     const profits = {};
     const netSellValues = {};
-    for (let gain = 1; gain <= 5; gain++) {
-        // Gains from 1% to 5%
+    const gains = [0.5, 1, 2, 3, 4, 5];
+    for (const gain of gains) {
         const targetPrice = breakEvenPrice * (1 + gain / 100);
         const sellFeeAtTarget = targetPrice * quantity * (feePercent / 100);
         const totalSellValueAtTarget = targetPrice * quantity - sellFeeAtTarget;
@@ -70,19 +70,21 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
     // Prepare results for React
     const results = [];
 
-    if (currentCoinPrice) {
-        results.push({
-            percentage: percentageProfitLoss,
-            price: currentCoinPrice,
-            net: profitAtCurrent,
-        });
-    }
-
     for (const gain in targetPrices) {
         results.push({
             percentage: gain,
             price: targetPrices[gain],
             net: profits[gain],
+        });
+    }
+
+    results.sort((a, b) => parseFloat(a.percentage) - parseFloat(b.percentage));
+
+    if (currentCoinPrice) {
+        results.unshift({
+            percentage: percentageProfitLoss,
+            price: currentCoinPrice,
+            net: profitAtCurrent,
         });
     }
 
@@ -144,10 +146,12 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
             const [boughtPrice, setBoughtPrice] = React.useState("");
             const [breakEvenPrice, setBreakEvenPrice] = React.useState(0);
             const [results, setResults] = React.useState(null);
+            const [fractionLength, setFractionLength] = React.useState(4);
 
             // Fetch input values from the page
             const fetchInputValues = () => {
                 const existingCoinPrice = parseFloat(document.querySelector('[id^="price-"]')?.value || 0);
+                setFractionLength(Math.max(existingCoinPrice.toString().split(".")[1]?.length, 4));
                 const existingTotalInvested = parseFloat(document.querySelector('[id^="volumeInQuote-"]')?.value || 0);
                 setCoinPrice(existingCoinPrice);
                 setTotalInvested(existingTotalInvested);
@@ -187,7 +191,7 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
                 }
             }, [coinPrice, totalInvested, boughtPrice]);
 
-            const formatCurrency = (value, digits = 5, locale = "en-US", currency = "USD") => {
+            const formatCurrency = (value, digits = fractionLength, locale = "en-US", currency = "USD") => {
                 return new Intl.NumberFormat(locale, {
                     style: "decimal",
                     currency: currency,
@@ -198,7 +202,7 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
 
             return React.createElement(
                 "div",
-                { className: "flex flex-col gap-y-2 pt-2" },
+                { className: "flex flex-col gap-y-2" },
                 // React.createElement(ResultRow2, { label: "Coin Price", value: coinPrice }),
                 // React.createElement(ResultRow2, { label: "Total", value: totalInvested }),
                 React.createElement(ResultRow2, { label: "Break Even Price:", value: formatCurrency(breakEvenPrice) }),
