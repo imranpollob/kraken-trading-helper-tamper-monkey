@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Kraken Pro Trade Helper
 // @namespace    http://tampermonkey.net/
-// @version      1.3
+// @version      1.4
 // @description  Calculate profitable selling prices for trades on Kraken Pro.
 // @author       Imran Pollob
 // @license      MIT
@@ -151,7 +151,13 @@ function tradeSummaryWithFractional(coinPrice, investmentAmount, currentCoinPric
             // Fetch input values from the page
             const fetchInputValues = () => {
                 const existingCoinPrice = parseFloat(document.querySelector('[id^="price-"]')?.value || 0);
-                setFractionLength(Math.max(existingCoinPrice.toString().split(".")[1]?.length, 4));
+
+                if (existingCoinPrice.toString().includes(".")) {
+                    let fractionLength = existingCoinPrice.toString().split(".")[1]?.length;
+                    fractionLength = Math.max(fractionLength, 4);
+                }
+
+                setFractionLength(fractionLength);
                 const existingTotalInvested = parseFloat(document.querySelector('[id^="volumeInQuote-"]')?.value || 0);
                 setCoinPrice(existingCoinPrice);
                 setTotalInvested(existingTotalInvested);
